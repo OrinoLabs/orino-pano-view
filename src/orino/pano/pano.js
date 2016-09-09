@@ -1,9 +1,24 @@
 
-goog.provide('pano');
+goog.provide('orino.pano');
+goog.provide('orino.pano.Projection');
+goog.provide('orino.pano.Coordinates');
+goog.provide('orino.pano.Camera');
 
 goog.require('goog.math.Vec2');
 goog.require('goog.math.Vec3');
 
+
+
+/**
+ * @enum {number}
+ */
+orino.pano.Projection = {
+  NONE: 0,
+  PLANAR: 1
+};
+
+
+//------------------------------------------------------------------------------
 
 
 /**
@@ -17,7 +32,7 @@ goog.require('goog.math.Vec3');
  * @param {number=} opt_pitch Pitch angle in radians (phi).
  * @constructor
  */
-pano.Coordinates = function(opt_yaw, opt_pitch) {
+orino.pano.Coordinates = function(opt_yaw, opt_pitch) {
   /** @type {number} */
   this.yaw = opt_yaw || 0;
   /** @type {number} */
@@ -29,7 +44,7 @@ pano.Coordinates = function(opt_yaw, opt_pitch) {
  * @param {goog.math.Vec3} p
  * @return {pano.Coordinates}
  */
-pano.Coordinates.fromCartesianPoint = function(p) {
+orino.pano.Coordinates.fromCartesianPoint = function(p) {
   p = p.clone().normalize();
   var xyLength = Math.sqrt(p.x * p.x + p.y * p.y);
   var yaw = Math.acos(p.x / xyLength);
@@ -44,7 +59,7 @@ pano.Coordinates.fromCartesianPoint = function(p) {
 /**
  * @return {goog.math.Vec3}
  */
-pano.Coordinates.prototype.cartesianUnitVector = function() {
+orino.pano.Coordinates.prototype.cartesianUnitVector = function() {
   if (this.pitch > Math.PI / 2 || this.pitch < -Math.PI / 2) {
     throw 'Vertical angle > PI/2';
   }
@@ -56,7 +71,7 @@ pano.Coordinates.prototype.cartesianUnitVector = function() {
 };
 
 
-pano.Coordinates.prototype.toString = function() {
+orino.pano.Coordinates.prototype.toString = function() {
   return ['(yaw: ', goog.math.toDegrees(this.yaw),
           ', pitch: ', goog.math.toDegrees(this.pitch)
           ].join('');
@@ -73,7 +88,7 @@ pano.Coordinates.prototype.toString = function() {
  * @param {pano.Coordinates} lookAt
  * @return {goog.math.Vec3}
  */
-pano.horizontalUnitTangent = function(lookAt) {
+orino.pano.horizontalUnitTangent = function(lookAt) {
   var x = Math.cos(lookAt.yaw);
   var y = Math.sin(lookAt.yaw);
   return new goog.math.Vec3(-y, x, 0);
@@ -84,7 +99,7 @@ pano.horizontalUnitTangent = function(lookAt) {
  * @param {pano.Coordinates} lookAt
  * @return {goog.math.Vec3}
  */
-pano.verticalUnitTangent = function(lookAt) {
+orino.pano.verticalUnitTangent = function(lookAt) {
   var pos = lookAt.cartesianUnitVector();
   var hTang = pano.horizontalUnitTangent(lookAt);
   var vTang = goog.math.Vec3.cross(pos, hTang);
@@ -100,7 +115,7 @@ pano.verticalUnitTangent = function(lookAt) {
  * @param {number=} opt_hFov
  * @constructor
  */
-pano.Camera = function(opt_lookAt, opt_hFov) {
+orino.pano.Camera = function(opt_lookAt, opt_hFov) {
   /** {pano.Coordinates} */
   this.lookAt = opt_lookAt || new pano.Coordinates
   /**
@@ -111,4 +126,9 @@ pano.Camera = function(opt_lookAt, opt_hFov) {
 };
 
 
-pano.Camera.DEFAULT_H_FOV = Math.PI * 0.7;
+/**
+ * Default horizontal field of view (radians).
+ * @type {number}
+ */
+orino.pano.Camera.DEFAULT_H_FOV = Math.PI * 0.7;
+

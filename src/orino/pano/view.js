@@ -1,21 +1,19 @@
 
 
-goog.provide('pano.WebGLView');
+goog.provide('orino.pano.view.View');
 
 goog.require('goog.events.EventTarget');
+goog.require('goog.math');
+goog.require('goog.math.Size');
+goog.require('goog.math.Vec3');
 goog.require('pano');
-goog.require('pano.webglViewShaders');
+goog.require('pano.view.shaders');
+// TODO: Make available in this repo.
 goog.require('webgl');
 
 
-/**
- * @enum {number}
- */
-pano.Projection = {
-  NONE: 0,
-  PLANAR: 1
-};
-
+// FILE SCOPE START
+(function() {
 
 
 /**
@@ -25,7 +23,7 @@ pano.Projection = {
  * @constructor
  * @extends {goog.events.EventTarget}
  */
-pano.WebGLView = function(canvasElem, panoOpts, camera) {
+var View = orino.pano.view.View = function(canvasElem, panoOpts, camera) {
   goog.events.EventTarget.call(this);
 
   /**
@@ -49,17 +47,17 @@ pano.WebGLView = function(canvasElem, panoOpts, camera) {
 
   pano.WebGLView.loadShaders_(goog.bind(this.initGraphics_, this));
 };
-goog.inherits(pano.WebGLView, goog.events.EventTarget);
+goog.inherits(View, goog.events.EventTarget);
 
 
-pano.WebGLView.logger = pano.WebGLView.prototype.logger =
+View.logger = pano.WebGLView.prototype.logger =
     goog.log.getLogger('pano.WebGLView');
 
 
 /**
  * @enum{string}
  */
-pano.WebGLView.Event = {
+View.Event = {
   // Ready event. Dispatched when the view becomes ready to draw.
   READY: 'ready'
 };
@@ -68,35 +66,39 @@ pano.WebGLView.Event = {
 /**
  * @type {string}
  */
-pano.WebGLView.VSHADER_URL = '/js/src/pano/webglview_vert.glsl';
+View.VSHADER_REL_URL = 'shaders/vert.glsl';
 
 /**
  * @type {string}
  */
-pano.WebGLView.FSHADER_URL = '/js/src/pano/webglview_frag.glsl';
-
-/**
- * @type {string}
- * @private
- */
-pano.WebGLView.vshaderSrc_;
+View.FSHADER_REL_URL = 'shaders/frag.glsl';
 
 /**
  * @type {string}
  * @private
  */
-pano.WebGLView.fshaderSrc_;
+View.vshaderSrc_;
 
+/**
+ * @type {string}
+ * @private
+ */
+View.fshaderSrc_;
+
+
+// document.currentScript is only set when the script is first run.
+var currentScriptSrc = document.currentScript && document.currentScript.src;
+console.log('currentScriptSrc: ' + currentScriptSrc);
 
 /**
  * @param {Function} doneFn
  * @private
  */
-pano.WebGLView.loadShaders_ = function() {
-  if (true || COMPILED) {
+View.loadShaders_ = (function() {
+  if (COMPILED) {
     return function(doneFn) {
-      pano.WebGLView.vshaderSrc_ = pano.webglViewShaders['webglview_vert.glsl'];
-      pano.WebGLView.fshaderSrc_ = pano.webglViewShaders['webglview_frag.glsl'];
+      View.vshaderSrc_ = orino.pano.view.shaders['vert.glsl'];
+      View.fshaderSrc_ = orino.pano.view.shaders['frag.glsl'];
       doneFn();
     }
   }
@@ -111,42 +113,48 @@ pano.WebGLView.loadShaders_ = function() {
       doneFn();
 
     } else if (!loading) {
-      pano.WebGLView.logger.info('Loading shaders...');
+      if (!currentScriptSrc) {
+        throw new Error('Current script src not know. Can\'t load shaders.');
+      }
+
+      View.logger.info('Loading shaders...');
       var vshaderXhrIo = new goog.net.XhrIo;
       vshaderXhrIo.listen(
           goog.net.EventType.COMPLETE,
           function() {
-            pano.WebGLView.logger.info('Vertex shader loaded.');
-            pano.WebGLView.vshaderSrc_ = vshaderXhrIo.getResponseText();
+            View.logger.info('Vertex shader loaded.');
+            View.vshaderSrc_ = vshaderXhrIo.getResponseText();
             if (shadersLoaded()) doneFn();
           });
-      vshaderXhrIo.send(pano.WebGLView.VSHADER_URL);
+      var src = currentScriptSrc.replace(/[^\/]*$/, View.VSHADER_REL_URL);
+      vshaderXhrIo.send(src);
 
       var fshaderXhrIo = new goog.net.XhrIo;
       fshaderXhrIo.listen(
           goog.net.EventType.COMPLETE,
           function() {
-            pano.WebGLView.logger.info('Fragment shader loaded.');
-            pano.WebGLView.fshaderSrc_ = fshaderXhrIo.getResponseText();
+            View.logger.info('Fragment shader loaded.');
+            View.fshaderSrc_ = fshaderXhrIo.getResponseText();
             if (shadersLoaded()) doneFn();
           });
-      fshaderXhrIo.send(pano.WebGLView.FSHADER_URL);
+      var src = currentScriptSrc.replace(/[^\/]*$/, View.FSHADER_REL_URL);
+      fshaderXhrIo.send(src);
     }
   }
-}();
+})();
 
 
 /**
  * @type {goog.math.Size}
  * @private
  */
-pano.WebGLView.prototype.canvasSize_ = new goog.math.Size(0, 0);
+View.prototype.canvasSize_ = new goog.math.Size(0, 0);
 
 
 /**
  * @param {goog.math.Size} size
  */
-pano.WebGLView.prototype.setSize = function(size) {
+View.prototype.setSize = function(size) {
   this.canvasSize_ = size;
   this.canvas_.width = size.width;
   this.canvas_.height = size.height;
@@ -169,7 +177,7 @@ pano.WebGLView.prototype.setSize = function(size) {
 /**
  * @private
  */
-pano.WebGLView.prototype.updateSize_ = function() {
+View.prototype.updateSize_ = function() {
   this.updateWebGLViewportSize_();
   this.updateView_();
   this.draw_();
@@ -179,7 +187,7 @@ pano.WebGLView.prototype.updateSize_ = function() {
 /**
  * @private
  */
-pano.WebGLView.prototype.initGraphics_ = function() {
+View.prototype.initGraphics_ = function() {
   /**
    * @type {WebGLRenderingContext}
    * @private
@@ -213,11 +221,11 @@ pano.WebGLView.prototype.initGraphics_ = function() {
    * @type {number}
    * @private
    */
-  this.vertexAttribLocation_ = this.gl_.getAttribLocation(this.program_, 'vertex');
+  this.vertexAttribLocation_ = gl.getAttribLocation(this.program_, 'vertex');
   gl.enableVertexAttribArray(this.vertexAttribLocation_);
   gl.vertexAttribPointer(
       this.vertexAttribLocation_,
-      this.screenQuadBuffer_.itemSize, this.gl_.FLOAT, false, 0, 0);
+      this.screenQuadBuffer_.itemSize, gl.FLOAT, false, 0, 0);
 
 
   var get = goog.bind(function(name) {
@@ -271,7 +279,7 @@ pano.WebGLView.prototype.initGraphics_ = function() {
  * Updates the WebGL viewport size to fit the canvas size.
  * @private
  */
-pano.WebGLView.prototype.updateWebGLViewportSize_ = function() {
+View.prototype.updateWebGLViewportSize_ = function() {
   if (!this.gl_) return;
 
   var size = this.canvasSize_;
@@ -280,13 +288,13 @@ pano.WebGLView.prototype.updateWebGLViewportSize_ = function() {
 };
 
 
-pano.WebGLView.prototype.projection_ = pano.Projection.PLANAR;
+View.prototype.projection_ = orino.pano.Projection.PLANAR;
 
 
 /**
  * @param {pano.Projection} projection
  */
-pano.WebGLView.prototype.setProjection = function(projection) {
+View.prototype.setProjection = function(projection) {
   this.projection_ = projection;
   this.updateProjection_();
   this.cameraChanged();
@@ -297,7 +305,7 @@ pano.WebGLView.prototype.setProjection = function(projection) {
 /**
  * @private
  */
-pano.WebGLView.prototype.updateProjection_ = function() {
+View.prototype.updateProjection_ = function() {
   // NOTE: The same uniform name can't be used both in the vertex-
   // and fragement-shader.
   this.gl_.uniform1i(this.uniforms_.projectionVS, this.projection_);
@@ -310,34 +318,34 @@ pano.WebGLView.prototype.updateProjection_ = function() {
  * @type {goog.math.Vec3}
  * @private
  */
-pano.WebGLView.prototype.lookAtCartesian_;
+View.prototype.lookAtCartesian_;
 
 /**
  * The horizontal vector spanning up the plane used for the planar projection.
  * @type {goog.math.Vec3}
  * @private
  */
-pano.WebGLView.prototype.planeU_;
+View.prototype.planeU_;
 
 /**
  * The vertical vector spanning up the plane used for the planar projection.
  * @type {goog.math.Vec3}
  * @private
  */
-pano.WebGLView.prototype.planeV_;
+View.prototype.planeV_;
 
 
 /**
  * Updates the camera view.
  */
-pano.WebGLView.prototype.updateView_ = function() {
+View.prototype.updateView_ = function() {
   var camera = this.camera_;
 
-  if (this.projection_ == pano.Projection.PLANAR) {
+  if (this.projection_ == orino.pano.Projection.PLANAR) {
     this.lookAtCartesian_ = camera.lookAt.cartesianUnitVector();
 
-    this.planeU_ = pano.horizontalUnitTangent(camera.lookAt);
-    this.planeV_ = pano.verticalUnitTangent(camera.lookAt);
+    this.planeU_ = orino.pano.horizontalUnitTangent(camera.lookAt);
+    this.planeV_ = orino.pano.verticalUnitTangent(camera.lookAt);
 
     // NOTE/GOTCHA: 2 * Math.tan(angle) != Math.tan(2 * angle)
     var uLen = 2 * Math.tan(camera.hFov / 2)
@@ -352,24 +360,25 @@ pano.WebGLView.prototype.updateView_ = function() {
     webgl.uniformVec3(this.gl_, this.uniforms_.planeV, this.planeV_);
 
   } else {
-
+    // TODO
   }
 
+  // TODO: Remove dependency on tracks.media.PanoPlayer.Event
   this.dispatchEvent(tracks.media.PanoPlayer.Event.CAMERACHANGE);
 };
 
 
 /**
- * Notifies this object about a camera change, prompting it to update the view.
- * Does not trigger a redraw.
+ * Notifies this view about a camera change, prompting it to update the view.
+ * Does NOT trigger a redraw.
  */
-pano.WebGLView.prototype.cameraChanged = pano.WebGLView.prototype.updateView_;
+View.prototype.cameraChanged = View.prototype.updateView_;
 
 
 /**
  * @private
  */
-pano.WebGLView.prototype.draw_ = function() {
+View.prototype.draw_ = function() {
   if (!this.gl_) return;
 
   // TODO: Probably unnecessary.
@@ -386,16 +395,19 @@ pano.WebGLView.prototype.draw_ = function() {
 /**
  * Redraws the pano.
  */
-pano.WebGLView.prototype.draw = pano.WebGLView.prototype.draw_;
+View.prototype.draw = View.prototype.draw_;
 
 
 /**
  * @param {HTMLVideoElement} videoElem
  */
-pano.WebGLView.prototype.grabVideoFrame = function(videoElem) {
+View.prototype.grabVideoFrame = function(videoElem) {
   if (this.gl_) {
     webgl.getVideoFrame(this.gl_, videoElem, this.texture_);
   }
 };
 
 
+
+// FILE SCOPE END
+})();
