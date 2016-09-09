@@ -1,0 +1,99 @@
+<!doctype html>
+<html>
+<head>
+<script src="../../goog_base.js"></script>
+<script>
+goog.require('goog.testing.jsunit');
+goog.require('pano');
+</script>
+<script>
+
+var Vec2 = goog.math.Vec2;
+var Vec3 = goog.math.Vec3;
+
+var PI = Math.PI;
+
+
+function assertVecEquals(exp, act) {
+  var tolerance = 1e-10;
+  assertRoughlyEquals(exp.x, act.x, tolerance);
+  assertRoughlyEquals(exp.y, act.y, tolerance);
+  if ('z' in exp) {
+    assertRoughlyEquals(exp.z, act.z, tolerance);
+  }
+}
+
+
+function assertPanoCoordsEqual(exp, act) {
+  var tolerance = 1e-10;
+  assertRoughlyEquals(exp.yaw, act.yaw, tolerance);  
+  assertRoughlyEquals(exp.pitch, act.pitch, tolerance);  
+}
+
+
+function testPanoCoordinatesToUnitVector() {
+  function test(exp, panoCoords) {
+    var act = panoCoords.cartesianUnitVector();
+    assertVecEquals(exp, act);
+  }
+
+  test(new Vec3(1, 0, 0), new pano.Coordinates(0, 0));
+  test(new Vec3(-1, 0, 0), new pano.Coordinates(PI, 0));
+
+  test(new Vec3(0, 1, 0), new pano.Coordinates(PI/2, 0));
+  test(new Vec3(0, -1, 0), new pano.Coordinates(PI * 3/2, 0));
+
+  test(new Vec3(0, 0, 1), new pano.Coordinates(0, PI/2));
+  test(new Vec3(0, 0, -1), new pano.Coordinates(0, -PI/2));
+}
+
+
+function testVectorToAngles() {
+  assertPanoCoordsEqual(new pano.Coordinates(0, 0), pano.Coordinates.fromCartesianPoint(new Vec3(1, 0, 0)));
+  assertPanoCoordsEqual(new pano.Coordinates(PI, 0), pano.Coordinates.fromCartesianPoint(new Vec3(-1, 0, 0)));
+
+  assertPanoCoordsEqual(new pano.Coordinates(PI/2, 0), pano.Coordinates.fromCartesianPoint(new Vec3(0, 1, 0)));
+  assertPanoCoordsEqual(new pano.Coordinates(-PI/2, 0), pano.Coordinates.fromCartesianPoint(new Vec3(0, -1, 0)));
+}
+
+
+function testHorizontalUnitTangent() {
+  function test(expVec, yaw) {
+    var panoCoords = new pano.Coordinates(yaw, 0);
+    var act = pano.horizontalUnitTangent(panoCoords);
+    assertVecEquals(expVec, act);
+  }
+
+  test(new Vec3(0, 1, 0), 0);
+  test(new Vec3(-1, 0, 0), PI/2);
+  test(new Vec3(0, -1, 0), PI);
+  test(new Vec3(1, 0, 0), PI * 3/2);
+}
+
+
+function testVerticalUnitTangent() {
+  function test(exp, yaw, pitch) {
+    var panoCoords = new pano.Coordinates(yaw, pitch);
+    var act = pano.verticalUnitTangent(panoCoords);
+    assertVecEquals(exp, act);
+  }
+
+  test(new Vec3(0, 0, 1), 0, 0);
+  test(new Vec3(0, 0, 1), PI/2, 0);
+  test(new Vec3(0, 0, 1), Math.random(), 0);
+
+  test(new Vec3(-1, 0, 0), 0, PI/2);
+  test(new Vec3(0, -1, 0), PI/2, PI/2);
+  test(new Vec3(1, 0, 0), PI, PI/2);
+  test(new Vec3(0, 1, 0), PI * 3/2, PI/2);
+
+  test(new Vec3(1, 0, 0), 0, -PI/2);
+  test(new Vec3(0, 1, 0), PI/2, -PI/2);
+  test(new Vec3(-1, 0, 0), PI, -PI/2);
+  test(new Vec3(0, -1, 0), PI * 3/2, -PI/2);
+}
+
+
+</script>
+</head>
+</html>
