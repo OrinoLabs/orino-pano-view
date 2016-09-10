@@ -116,29 +116,23 @@ View.loadShaders_ = (function() {
       if (!currentScriptSrc) {
         throw new Error('Current script src not know. Can\'t load shaders.');
       }
-
       View.logger.info('Loading shaders...');
-      var vshaderXhrIo = new goog.net.XhrIo;
-      vshaderXhrIo.listen(
-          goog.net.EventType.COMPLETE,
-          function() {
-            View.logger.info('Vertex shader loaded.');
-            View.vshaderSrc_ = vshaderXhrIo.getResponseText();
-            if (shadersLoaded()) doneFn();
-          });
-      var src = currentScriptSrc.replace(/[^\/]*$/, View.VSHADER_REL_URL);
-      vshaderXhrIo.send(src);
 
-      var fshaderXhrIo = new goog.net.XhrIo;
-      fshaderXhrIo.listen(
-          goog.net.EventType.COMPLETE,
-          function() {
-            View.logger.info('Fragment shader loaded.');
-            View.fshaderSrc_ = fshaderXhrIo.getResponseText();
-            if (shadersLoaded()) doneFn();
-          });
-      var src = currentScriptSrc.replace(/[^\/]*$/, View.FSHADER_REL_URL);
-      fshaderXhrIo.send(src);
+      window.fetch(currentScriptSrc.replace(/[^\/]*$/, View.VSHADER_REL_URL))
+      .then(function(res) { return res.text() })
+      .then(function(text) {
+        View.logger.info('Vertex shader loaded.');
+        View.vshaderSrc_ = text;
+        if (shadersLoaded()) doneFn();
+      });
+
+      window.fetch(currentScriptSrc.replace(/[^\/]*$/, View.FSHADER_REL_URL))
+      .then(function(res) { return res.text() })
+      .then(function(text) {
+        View.logger.info('Fragment shader loaded.');
+        View.fshaderSrc_ = text;
+        if (shadersLoaded()) doneFn();
+      });
     }
   }
 })();
