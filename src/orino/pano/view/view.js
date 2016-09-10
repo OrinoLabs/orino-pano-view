@@ -6,6 +6,7 @@ goog.require('goog.events.EventTarget');
 goog.require('goog.math');
 goog.require('goog.math.Size');
 goog.require('goog.math.Vec3');
+goog.require('goog.Promise');
 goog.require('orino.pano');
 goog.require('orino.pano.view.shaders');
 // TODO: Make available in this repo.
@@ -45,7 +46,8 @@ var View = orino.pano.view.View = function(canvasElem, panoOpts, camera) {
   this.camera_ = camera;
 
 
-  View.loadShaders_(goog.bind(this.initGraphics_, this));
+  View.loadShaders_()
+  .then(goog.bind(this.initGraphics_, this));
 };
 goog.inherits(View, goog.events.EventTarget);
 
@@ -62,80 +64,45 @@ View.Event = {
 };
 
 
-/**
- * @type {string}
- */
+/** @type {string} */
 View.VSHADER_REL_URL = 'shaders/vert.glsl';
-
-/**
- * @type {string}
- */
+/** @type {string} */
 View.FSHADER_REL_URL = 'shaders/frag.glsl';
-
-/**
- * @type {string}
- * @private
- */
-View.vshaderSrc_;
-
-/**
- * @type {string}
- * @private
- */
-View.fshaderSrc_;
 
 
 // document.currentScript is only set when the script is first run.
 var currentScriptSrc = document.currentScript && document.currentScript.src;
-console.log('currentScriptSrc: ' + currentScriptSrc);
+
 
 /**
- * @param {Function} doneFn
+ * @return {goog.Promise}
  * @private
  */
-View.loadShaders_ = (function() {
+View.loadShaders_ = function() {
   if (COMPILED) {
-    return function(doneFn) {
-      View.vshaderSrc_ = orino.pano.view.shaders['vert.glsl'];
-      View.fshaderSrc_ = orino.pano.view.shaders['frag.glsl'];
-      doneFn();
-    }
+    return goog.Promise.resolve();
   }
 
-  function shadersLoaded() {
-    return View.vshaderSrc_ && View.fshaderSrc_;
+  if (!currentScriptSrc) {
+    throw new Error('Current script src not know. Can\'t load shaders.');
   }
+  View.logger.info('Loading shaders.');
 
-  var loading = false;
-
-  return function(doneFn) {
-    if (shadersLoaded()) {
-      doneFn();
-
-    } else if (!loading) {
-      if (!currentScriptSrc) {
-        throw new Error('Current script src not know. Can\'t load shaders.');
-      }
-      View.logger.info('Loading shaders...');
-
-      window.fetch(currentScriptSrc.replace(/[^\/]*$/, View.VSHADER_REL_URL))
+  return goog.Promise.all(
+    [ window.fetch(currentScriptSrc.replace(/[^\/]*$/, View.VSHADER_REL_URL))
       .then(function(res) { return res.text() })
       .then(function(text) {
         View.logger.info('Vertex shader loaded.');
-        View.vshaderSrc_ = text;
-        if (shadersLoaded()) doneFn();
-      });
-
+        orino.pano.view.shaders['vert.glsl'] = text;
+      }),
       window.fetch(currentScriptSrc.replace(/[^\/]*$/, View.FSHADER_REL_URL))
       .then(function(res) { return res.text() })
       .then(function(text) {
         View.logger.info('Fragment shader loaded.');
-        View.fshaderSrc_ = text;
-        if (shadersLoaded()) doneFn();
-      });
-    }
-  }
-})();
+        orino.pano.view.shaders['frag.glsl'] = text;
+      }),
+    ]);
+};
 
 
 /**
@@ -186,13 +153,8 @@ View.prototype.initGraphics_ = function() {
    * @type {WebGLRenderingContext}
    * @private
    */
-  this.gl_ = webgl.getContext(this.canvas_);
-  if (this.gl_) {
-    this.logger.info('WebGL context created.')
-  } else {
-    throw 'Error creating WebGL context.';
-  }
-  var gl = this.gl_;
+  var gl = this.gl_ = webgl.getContext(this.canvas_);
+  if (!gl) throw new Error('Error creating WebGL context.');
 
   gl.clearColor(0, 0, 0, 1);
   gl.clear(this.gl_.COLOR_BUFFER_BIT)
@@ -208,7 +170,9 @@ View.prototype.initGraphics_ = function() {
    * @private
    */
   this.program_ = webgl.createProgram(
-      gl, View.vshaderSrc_, View.fshaderSrc_);
+      gl,
+      orino.pano.view.shaders['vert.glsl'],
+      orino.pano.view.shaders['frag.glsl']);
   gl.useProgram(this.program_);
 
   /**
