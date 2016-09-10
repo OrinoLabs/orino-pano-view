@@ -42,7 +42,7 @@ orino.pano.Coordinates = function(opt_yaw, opt_pitch) {
 
 /**
  * @param {goog.math.Vec3} p
- * @return {pano.Coordinates}
+ * @return {orino.pano.Coordinates}
  */
 orino.pano.Coordinates.fromCartesianPoint = function(p) {
   p = p.clone().normalize();
@@ -52,7 +52,7 @@ orino.pano.Coordinates.fromCartesianPoint = function(p) {
     yaw = -yaw;
   }
   var pitch = Math.asin(p.z);
-  return new pano.Coordinates(yaw, pitch);
+  return new orino.pano.Coordinates(yaw, pitch);
 };
 
 
@@ -85,7 +85,7 @@ orino.pano.Coordinates.prototype.toString = function() {
 // Move to suitable place once some sort of projection concept has been introduced.
 
 /**
- * @param {pano.Coordinates} lookAt
+ * @param {orino.pano.Coordinates} lookAt
  * @return {goog.math.Vec3}
  */
 orino.pano.horizontalUnitTangent = function(lookAt) {
@@ -96,12 +96,12 @@ orino.pano.horizontalUnitTangent = function(lookAt) {
 
 
 /**
- * @param {pano.Coordinates} lookAt
+ * @param {orino.pano.Coordinates} lookAt
  * @return {goog.math.Vec3}
  */
 orino.pano.verticalUnitTangent = function(lookAt) {
   var pos = lookAt.cartesianUnitVector();
-  var hTang = pano.horizontalUnitTangent(lookAt);
+  var hTang = orino.pano.horizontalUnitTangent(lookAt);
   var vTang = goog.math.Vec3.cross(pos, hTang);
   return vTang;
 };
@@ -111,18 +111,18 @@ orino.pano.verticalUnitTangent = function(lookAt) {
 
 
 /**
- * @param {pano.Coordinates=} opt_lookAt
+ * @param {orino.pano.Coordinates=} opt_lookAt
  * @param {number=} opt_hFov
  * @constructor
  */
 orino.pano.Camera = function(opt_lookAt, opt_hFov) {
-  /** {pano.Coordinates} */
-  this.lookAt = opt_lookAt || new pano.Coordinates
+  /** {orino.pano.Coordinates} */
+  this.lookAt = opt_lookAt || new orino.pano.Coordinates
   /**
    * The horizontal field of view (radians).
    * {number}
    */
-  this.hFov = opt_hFov || pano.Camera.DEFAULT_H_FOV;
+  this.hFov = opt_hFov || orino.pano.Camera.DEFAULT_H_FOV;
 };
 
 

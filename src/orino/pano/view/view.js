@@ -6,8 +6,8 @@ goog.require('goog.events.EventTarget');
 goog.require('goog.math');
 goog.require('goog.math.Size');
 goog.require('goog.math.Vec3');
-goog.require('pano');
-goog.require('pano.view.shaders');
+goog.require('orino.pano');
+goog.require('orino.pano.view.shaders');
 // TODO: Make available in this repo.
 goog.require('webgl');
 
@@ -45,14 +45,13 @@ var View = orino.pano.view.View = function(canvasElem, panoOpts, camera) {
   this.camera_ = camera;
 
 
-  pano.WebGLView.loadShaders_(goog.bind(this.initGraphics_, this));
+  View.loadShaders_(goog.bind(this.initGraphics_, this));
 };
 goog.inherits(View, goog.events.EventTarget);
 
 
-View.logger = pano.WebGLView.prototype.logger =
-    goog.log.getLogger('pano.WebGLView');
-
+/** @type {goog.debug.Logger} */
+View.logger = View.prototype.logger = goog.log.getLogger('orino.pano.view.View');
 
 /**
  * @enum{string}
@@ -104,8 +103,9 @@ View.loadShaders_ = (function() {
   }
 
   function shadersLoaded() {
-    return pano.WebGLView.vshaderSrc_ && pano.WebGLView.fshaderSrc_;
+    return View.vshaderSrc_ && View.fshaderSrc_;
   }
+
   var loading = false;
 
   return function(doneFn) {
@@ -214,7 +214,7 @@ View.prototype.initGraphics_ = function() {
    * @private
    */
   this.program_ = webgl.createProgram(
-      gl, pano.WebGLView.vshaderSrc_, pano.WebGLView.fshaderSrc_);
+      gl, View.vshaderSrc_, View.fshaderSrc_);
   gl.useProgram(this.program_);
 
   /**
@@ -269,7 +269,7 @@ View.prototype.initGraphics_ = function() {
   this.updateWebGLViewportSize_();
   this.updateView_();
 
-  this.dispatchEvent(pano.WebGLView.Event.READY);
+  this.dispatchEvent(View.Event.READY);
 
   this.draw_();
 };

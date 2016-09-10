@@ -4,7 +4,7 @@
 <script src="../../goog_base.js"></script>
 <script>
 goog.require('goog.testing.jsunit');
-goog.require('pano');
+goog.require('orino.pano.Coordinates');
 </script>
 <script>
 
@@ -37,11 +37,11 @@ function testPanoCoordinatesToUnitVector() {
     assertVecEquals(exp, act);
   }
 
-  test(new Vec3(1, 0, 0), new pano.Coordinates(0, 0));
-  test(new Vec3(-1, 0, 0), new pano.Coordinates(PI, 0));
+  test(new Vec3(1, 0, 0), new orino.pano.Coordinates(0, 0));
+  test(new Vec3(-1, 0, 0), new orino.pano.Coordinates(PI, 0));
 
-  test(new Vec3(0, 1, 0), new pano.Coordinates(PI/2, 0));
-  test(new Vec3(0, -1, 0), new pano.Coordinates(PI * 3/2, 0));
+  test(new Vec3(0, 1, 0), new orino.pano.Coordinates(PI/2, 0));
+  test(new Vec3(0, -1, 0), new orino.pano.Coordinates(PI * 3/2, 0));
 
   test(new Vec3(0, 0, 1), new pano.Coordinates(0, PI/2));
   test(new Vec3(0, 0, -1), new pano.Coordinates(0, -PI/2));
@@ -49,17 +49,17 @@ function testPanoCoordinatesToUnitVector() {
 
 
 function testVectorToAngles() {
-  assertPanoCoordsEqual(new pano.Coordinates(0, 0), pano.Coordinates.fromCartesianPoint(new Vec3(1, 0, 0)));
-  assertPanoCoordsEqual(new pano.Coordinates(PI, 0), pano.Coordinates.fromCartesianPoint(new Vec3(-1, 0, 0)));
+  assertPanoCoordsEqual(new orino.pano.Coordinates(0, 0), pano.Coordinates.fromCartesianPoint(new Vec3(1, 0, 0)));
+  assertPanoCoordsEqual(new orino.pano.Coordinates(PI, 0), pano.Coordinates.fromCartesianPoint(new Vec3(-1, 0, 0)));
 
-  assertPanoCoordsEqual(new pano.Coordinates(PI/2, 0), pano.Coordinates.fromCartesianPoint(new Vec3(0, 1, 0)));
-  assertPanoCoordsEqual(new pano.Coordinates(-PI/2, 0), pano.Coordinates.fromCartesianPoint(new Vec3(0, -1, 0)));
+  assertPanoCoordsEqual(new orino.pano.Coordinates(PI/2, 0), pano.Coordinates.fromCartesianPoint(new Vec3(0, 1, 0)));
+  assertPanoCoordsEqual(new orino.pano.Coordinates(-PI/2, 0), pano.Coordinates.fromCartesianPoint(new Vec3(0, -1, 0)));
 }
 
 
 function testHorizontalUnitTangent() {
   function test(expVec, yaw) {
-    var panoCoords = new pano.Coordinates(yaw, 0);
+    var panoCoords = new orino.pano.Coordinates(yaw, 0);
     var act = pano.horizontalUnitTangent(panoCoords);
     assertVecEquals(expVec, act);
   }
@@ -73,7 +73,7 @@ function testHorizontalUnitTangent() {
 
 function testVerticalUnitTangent() {
   function test(exp, yaw, pitch) {
-    var panoCoords = new pano.Coordinates(yaw, pitch);
+    var panoCoords = new orino.pano.Coordinates(yaw, pitch);
     var act = pano.verticalUnitTangent(panoCoords);
     assertVecEquals(exp, act);
   }

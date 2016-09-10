@@ -1,0 +1,15 @@
+{
+  "name": "orino-pano-view",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Michael Bürge <mib@orino.ch>",
+  "license": "ISC",
+  "dependencies": {
+    "gulp": "^3.9.1",
+    "gulp-js-inline-resource": "git+https://github.com/OrinoLabs/gulp-js-inline-resource.git"
+  }
+}
