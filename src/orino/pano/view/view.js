@@ -7,10 +7,9 @@ goog.require('goog.math');
 goog.require('goog.math.Size');
 goog.require('goog.math.Vec3');
 goog.require('goog.Promise');
+goog.require('orino.glu');
 goog.require('orino.pano');
 goog.require('orino.pano.view.shaders');
-// TODO: Make available in this repo.
-goog.require('webgl');
 
 
 // FILE SCOPE START
@@ -157,7 +156,7 @@ View.prototype.initGraphics_ = function() {
    * @type {WebGLRenderingContext}
    * @private
    */
-  var gl = this.gl_ = webgl.getContext(this.canvas_);
+  var gl = this.gl_ = orino.glu.getContext(this.canvas_);
   if (!gl) throw new Error('Error creating WebGL context.');
 
   gl.clearColor(0, 0, 0, 1);
@@ -167,13 +166,13 @@ View.prototype.initGraphics_ = function() {
    * @type {WebGLBuffer}
    * @private
    */
-  this.screenQuadBuffer_ = webgl.screenQuad(this.gl_);
+  this.screenQuadBuffer_ = orino.glu.screenQuad(this.gl_);
 
   /**
    * @type {WebGLProgram}
    * @private
    */
-  this.program_ = webgl.createProgram(
+  this.program_ = orino.glu.createProgram(
       gl,
       orino.pano.view.shaders['vert.glsl'],
       orino.pano.view.shaders['frag.glsl']);
@@ -317,9 +316,9 @@ View.prototype.updateView_ = function() {
     var vLen = uLen / vpAspectRatio;
     this.planeV_.scale(vLen);
 
-    webgl.uniformVec3(this.gl_, this.uniforms_.lookAt, this.lookAtCartesian_);
-    webgl.uniformVec3(this.gl_, this.uniforms_.planeU, this.planeU_);
-    webgl.uniformVec3(this.gl_, this.uniforms_.planeV, this.planeV_);
+    orino.glu.uniformVec3(this.gl_, this.uniforms_.lookAt, this.lookAtCartesian_);
+    orino.glu.uniformVec3(this.gl_, this.uniforms_.planeU, this.planeU_);
+    orino.glu.uniformVec3(this.gl_, this.uniforms_.planeV, this.planeV_);
 
   } else {
     // TODO
@@ -364,7 +363,7 @@ View.prototype.draw = View.prototype.draw_;
  */
 View.prototype.grabVideoFrame = function(videoElem) {
   if (this.gl_) {
-    webgl.getVideoFrame(this.gl_, videoElem, this.texture_);
+    orino.glu.getVideoFrame(this.gl_, videoElem, this.texture_);
   }
 };
 
