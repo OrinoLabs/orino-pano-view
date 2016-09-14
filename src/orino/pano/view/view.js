@@ -18,6 +18,10 @@ goog.require('webgl');
 
 
 /**
+ * TODO:
+ * - Accept either canvas element or WebGLRenderingContext.
+ * - Make camera argment optional.
+ *
  * @param {HTMLCanvasElement} canvasElem
  * @param {Object} panoOpts
  * @param {pano.Camera} camera
@@ -59,8 +63,8 @@ View.logger = View.prototype.logger = goog.log.getLogger('orino.pano.view.View')
  * @enum{string}
  */
 View.Event = {
-  // Ready event. Dispatched when the view becomes ready to draw.
-  READY: 'ready'
+  // Readyness: The view is ready to draw.
+  READY: 'ready',
 };
 
 
@@ -321,8 +325,7 @@ View.prototype.updateView_ = function() {
     // TODO
   }
 
-  // TODO: Remove dependency on tracks.media.PanoPlayer.Event
-  this.dispatchEvent(tracks.media.PanoPlayer.Event.CAMERACHANGE);
+  this.dispatchEvent(orino.pano.Event.CAMERACHANGE);
 };
 
 

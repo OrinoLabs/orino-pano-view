@@ -1,12 +1,19 @@
 
 goog.provide('orino.pano');
-goog.provide('orino.pano.Projection');
+goog.provide('orino.pano.Event');
 goog.provide('orino.pano.Coordinates');
 goog.provide('orino.pano.Camera');
+goog.provide('orino.pano.Projection');
 
 goog.require('goog.math.Vec2');
 goog.require('goog.math.Vec3');
 
+
+
+/** @enun {string} */
+orino.pano.Event = {
+  CAMERACHANGE: 'camerachange',
+};
 
 
 /**
