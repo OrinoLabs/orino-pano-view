@@ -85,20 +85,23 @@ View.loadShaders_ = function() {
   if (COMPILED) {
     return goog.Promise.resolve();
   }
-
   if (!currentScriptSrc) {
-    throw new Error('Current script src not know. Can\'t load shaders.');
+    throw new Error('Can\'t load shaders. Current script src not known.');
   }
   View.logger.info('Loading shaders.');
 
+  function shaderUrl(relUrl) {
+    return currentScriptSrc.replace(/[^\/]*$/, View.VSHADER_REL_URL)
+  }
+
   return goog.Promise.all(
-    [ window.fetch(currentScriptSrc.replace(/[^\/]*$/, View.VSHADER_REL_URL))
+    [ window.fetch(shaderUrl(View.VSHADER_REL_URL))
       .then(function(res) { return res.text() })
       .then(function(text) {
         View.logger.info('Vertex shader loaded.');
         orino.pano.view.shaders['vert.glsl'] = text;
       }),
-      window.fetch(currentScriptSrc.replace(/[^\/]*$/, View.FSHADER_REL_URL))
+      window.fetch(shaderUrl(View.FSHADER_REL_URL))
       .then(function(res) { return res.text() })
       .then(function(text) {
         View.logger.info('Fragment shader loaded.');
