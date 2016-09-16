@@ -11,5 +11,8 @@
   "dependencies": {
     "gulp": "^3.9.1",
     "gulp-js-inline-resource": "git+https://github.com/OrinoLabs/gulp-js-inline-resource.git"
+  },
+  "devDependencies": {
+    "google-closure-library": "^20160911.0.0"
   }
 }
