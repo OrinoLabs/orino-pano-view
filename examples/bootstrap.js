@@ -17,3 +17,14 @@ function writeScriptTag(src) {
 
 writeScriptTag(baseUrl + GOOG_BASE);
 writeScriptTag(baseUrl + '../deps.js');
+
+
+// Set up console logging.
+// TODO: Decide whether doing this in this way and at this place makes sense.
+
+function setupConsoleLogging() {
+  (new goog.debug.Console).setCapturing(true);
+}
+
+document.write('<script> goog.require("goog.debug.Console"); </script>\n');
+document.write('<script> setupConsoleLogging() </script>\n');

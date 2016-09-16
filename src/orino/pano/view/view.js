@@ -19,15 +19,15 @@ goog.require('orino.pano.view.shaders');
 /**
  * TODO:
  * - Accept either canvas element or WebGLRenderingContext.
- * - Make camera argment optional.
+ * - Factor out source imagery description.
  *
  * @param {HTMLCanvasElement} canvasElem
- * @param {Object} panoOpts
- * @param {pano.Camera} camera
+ * @param {Object=} opt_panoOpts
+ * @param {pano.Camera=} opt_camera
  * @constructor
  * @extends {goog.events.EventTarget}
  */
-var View = orino.pano.view.View = function(canvasElem, panoOpts, camera) {
+var View = orino.pano.view.View = function(canvasElem, opt_panoOpts, opt_camera) {
   goog.events.EventTarget.call(this);
 
   /**
@@ -40,13 +40,13 @@ var View = orino.pano.view.View = function(canvasElem, panoOpts, camera) {
    * @type {Object}
    * @private
    */
-  this.panoOpts_ = panoOpts;
+  this.panoOpts_ = opt_panoOpts || {};
 
   /**
    * @type {pano.Camera}
    * @private
    */
-  this.camera_ = camera;
+  this.camera_ = opt_camera || new orino.pano.Camera;
 
 
   View.loadShaders_()
@@ -73,6 +73,11 @@ View.VSHADER_REL_URL = 'shaders/vert.glsl';
 View.FSHADER_REL_URL = 'shaders/frag.glsl';
 
 
+/** @type {orino.pano.Projection} */
+View.prototype.projection_ = orino.pano.Projection.PLANAR;
+
+
+
 // document.currentScript is only set when the script is first run.
 var currentScriptSrc = document.currentScript && document.currentScript.src;
 
@@ -91,7 +96,7 @@ View.loadShaders_ = function() {
   View.logger.info('Loading shaders.');
 
   function shaderUrl(relUrl) {
-    return currentScriptSrc.replace(/[^\/]*$/, View.VSHADER_REL_URL)
+    return currentScriptSrc.replace(/[^\/]*$/, relUrl)
   }
 
   return goog.Promise.all(
@@ -155,6 +160,7 @@ View.prototype.updateSize_ = function() {
  * @private
  */
 View.prototype.initGraphics_ = function() {
+  View.logger.info('Initializing graphics.');
   /**
    * @type {WebGLRenderingContext}
    * @private
@@ -192,9 +198,9 @@ View.prototype.initGraphics_ = function() {
       this.screenQuadBuffer_.itemSize, gl.FLOAT, false, 0, 0);
 
 
-  var get = goog.bind(function(name) {
-      return gl.getUniformLocation(this.program_, name);
-    }, this);
+  var get = function(name) {
+    return gl.getUniformLocation(this.program_, name);
+  }.bind(this);
   /**
    * @type {Object.<WebGLUniformLocation>}
    * @private
@@ -224,8 +230,9 @@ View.prototype.initGraphics_ = function() {
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
 
-  // Set vertical FOV covered by video.
-  var vFovDegrees = this.panoOpts_[tracks.PanoOption.VFOV] || 0;
+  // Set vertical FOV covered by imagery.
+  // TODO: Use option name constant/symbol (once it exists).
+  var vFovDegrees = this.panoOpts_['vfov'] || 0;
   var vFovRadians = goog.math.toRadians(vFovDegrees);
   gl.uniform1f(this.uniforms_.videoVFov, vFovRadians);
 
@@ -250,9 +257,6 @@ View.prototype.updateWebGLViewportSize_ = function() {
   this.gl_.viewport(0, 0, size.width, size.height);
   this.gl_.uniform2f(this.uniforms_.viewportSize, size.width, size.height);
 };
-
-
-View.prototype.projection_ = orino.pano.Projection.PLANAR;
 
 
 /**
