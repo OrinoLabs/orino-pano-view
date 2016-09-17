@@ -15,7 +15,7 @@ goog.events.listen(panoView, 'ready', function() {
   img = new Image();
   img.onload = function() {
     console.log('image loaded')
-    panoView.grabVideoFrame(img);
+    panoView.setImage(img);
     panoView.draw();
   };
   img.src = 'carrapateira-square.png';  

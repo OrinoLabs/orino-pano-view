@@ -366,11 +366,11 @@ View.prototype.draw = View.prototype.draw_;
 
 
 /**
- * @param {HTMLVideoElement} videoElem
+ * @param {(HTMLVideoElement|HTMLImageElement|HTMLCanvasElement)} elem
  */
-View.prototype.grabVideoFrame = function(videoElem) {
+View.prototype.setImage = function(elem) {
   if (this.gl_) {
-    orino.glu.getVideoFrame(this.gl_, videoElem, this.texture_);
+    orino.glu.textureFromElement(this.gl_, elem, this.texture_);
   }
 };
 

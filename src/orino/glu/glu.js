@@ -114,14 +114,13 @@ orino.glu.createProgram = function(gl, vertexShaderSrc, fragmentShaderSrc) {
 
 /**
  * @param {WebGLRenderingContext} gl
- * @param {HTMLVideoElement} videoElem
+ * @param {HTMLVideoElement} elem
  * @param {WebGLTexture} texture
  */
-orino.glu.getVideoFrame = function(gl, videoElem, texture) {
-  // TODO: Most of this stuff only needs to happen at texture creation time.
+orino.glu.textureFromElement = function(gl, elem, texture) {
   gl.bindTexture(gl.TEXTURE_2D, texture);
   gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, videoElem);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, elem);
 };
 
 
