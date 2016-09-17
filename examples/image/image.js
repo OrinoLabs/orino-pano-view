@@ -2,12 +2,11 @@
 goog.provide('examples.image');
 
 goog.require('goog.events');
-goog.require('goog.math.Size');
 goog.require('orino.pano.view.View');
 
 
 var panoView = new orino.pano.view.View(document.querySelector('canvas'));
-panoView.setSize(new goog.math.Size(600, 400));
+panoView.adjustSize();
 
 
 goog.events.listen(panoView, 'ready', function() {
@@ -21,3 +20,7 @@ goog.events.listen(panoView, 'ready', function() {
   img.src = 'carrapateira-square.png';  
 });
 
+
+goog.events.listen(window, 'resize', function() {
+  panoView.adjustSize();
+});

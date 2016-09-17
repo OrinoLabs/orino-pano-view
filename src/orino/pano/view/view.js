@@ -7,6 +7,7 @@ goog.require('goog.math');
 goog.require('goog.math.Size');
 goog.require('goog.math.Vec3');
 goog.require('goog.Promise');
+goog.require('goog.style');
 goog.require('orino.glu');
 goog.require('orino.pano');
 goog.require('orino.pano.view.shaders');
@@ -143,6 +144,15 @@ View.prototype.setSize = function(size) {
       }.bind(this));
     }
   }
+};
+
+
+/**
+ * Adjusts the size of the canvas to fit its containing element.
+ */
+View.prototype.adjustSize = function() {
+  var size = goog.style.getSize(this.canvas_.parentNode);
+  this.setSize(size);
 };
 
 
