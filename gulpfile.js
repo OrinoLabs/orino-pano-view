@@ -36,6 +36,7 @@ gulp.task('writedeps', function() {
     var proc = spawn(DEPSWRITER_CMD,
                      [ rootWithPrefixArg('src'),
                        rootWithPrefixArg('examples'),
+                       rootWithPrefixArg('node_modules/orino-anim/src'),
                        '--output_file=deps.js' ]);
     proc.stdout.on('data', logWithPrefix.bind(null, 'depswriter'));
     proc.stderr.on('data', logWithPrefix.bind(null, 'depswriter stderr'));
