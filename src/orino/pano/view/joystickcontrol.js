@@ -83,6 +83,10 @@ JoystickControl.prototype.handleMouseDown_ = function(e) {
  */
 var MAX_SPEED = Math.PI;
 
+/**
+ * Distance from starting point where the max speed is reached.
+ * @type {number}
+ */
 var MAX_MOVE = 600;
 
 
