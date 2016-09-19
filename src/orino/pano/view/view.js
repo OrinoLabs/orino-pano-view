@@ -8,6 +8,8 @@ goog.require('goog.math.Size');
 goog.require('goog.math.Vec3');
 goog.require('goog.Promise');
 goog.require('goog.style');
+goog.require('orino.anim');
+goog.require('orino.anim.Conductor');
 goog.require('orino.glu');
 goog.require('orino.pano');
 goog.require('orino.pano.view.shaders');
@@ -48,6 +50,18 @@ var View = orino.pano.view.View = function(canvasElem, opt_panoOpts, opt_camera)
    * @private
    */
   this.camera_ = opt_camera || new orino.pano.Camera;
+
+  /**
+   * @type {Array<orino.pano.view.Control>}
+   * @private
+   */
+  this.controls_ = [];
+
+  /**
+   * @type {orino.anim.Conductor}
+   * @private
+   */
+  this.conductor_ = new orino.anim.Conductor;
 
 
   View.loadShaders_()
@@ -122,6 +136,23 @@ View.loadShaders_ = function() {
  * @private
  */
 View.prototype.canvasSize_ = new goog.math.Size(0, 0);
+
+
+/**
+ * @return {HTMLCanvasElement}
+ */
+View.prototype.canvasElement = function() {
+  return this.canvas_;
+};
+
+
+/**
+ * @return {orino.pano.Camera}
+ */
+View.prototype.camera = function() {
+  return this.camera_;
+}
+
 
 
 /**
@@ -317,6 +348,7 @@ View.prototype.planeV_;
  * Updates the camera view.
  */
 View.prototype.updateView_ = function() {
+  console.log('updateView_')
   var camera = this.camera_;
 
   if (this.projection_ == orino.pano.Projection.PLANAR) {
@@ -383,6 +415,58 @@ View.prototype.setImage = function(elem) {
     orino.glu.textureFromElement(this.gl_, elem, this.texture_);
   }
 };
+
+
+// ----------- Controls ----------
+
+
+/**
+ * @param {orino.pano.view.Control} control
+ */
+View.prototype.addControl = function(control) {
+  if (!this.controls_) this.controls_ = [];
+
+  if (this.controls_.indexOf(control) != -1) {
+    return;
+  }
+
+  this.controls_.push(control);
+  control.setView(this);
+  control.enable();
+};
+
+
+/**
+ * @param {orino.pano.view.Control} control
+ */
+View.prototype.removeControl = function(control) {
+  if (!this.controls_) return;
+  var idx = this.controls_.indexOf(control);
+  if (idx == -1) {
+    return;
+  }
+
+  this.controls_.splice(idx, 1);
+  control.disable();
+  control.setView(null);
+};
+
+
+/**
+ * @param {orino.anim.Animation} animation
+ */
+View.prototype.addAnimation = function(animation) {
+  this.conductor_.add(animation);
+};
+
+
+/**
+ * @param {orino.anim.Animation} animation
+ */
+View.prototype.removeAnimation = function(animation) {
+  this.conductor_.remove(animation);
+};
+
 
 
 

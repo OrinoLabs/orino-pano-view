@@ -3,9 +3,12 @@ goog.provide('examples.image');
 
 goog.require('goog.events');
 goog.require('orino.pano.view.View');
+goog.require('orino.pano.view.JoystickControl');
+
 
 
 var panoView = new orino.pano.view.View(document.querySelector('canvas'));
+panoView.addControl(new orino.pano.view.JoystickControl);
 panoView.adjustSize();
 
 
