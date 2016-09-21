@@ -412,10 +412,14 @@ View.prototype.cameraChanged = function() {
 
 
 /**
+ * NOTE: Does NOT draw if nothing has been marked as changed!
  * @private
  */
 View.prototype.draw_ = function() {
   if (!this.gl_) return;
+
+  // DON'T MISS/FORGET THIS!
+  if (!this.changed_) return;
 
   if (this.changed_ & View.Changed.CAMERA) {
     this.updateCamera_();
@@ -461,9 +465,10 @@ View.prototype.draw = function() {
  * @param {(HTMLVideoElement|HTMLImageElement|HTMLCanvasElement)} elem
  */
 View.prototype.setImage = function(elem) {
-  if (this.gl_) {
-    orino.glu.textureFromElement(this.gl_, elem, this.texture_);
-  }
+  if (!this.gl_) return;
+
+  orino.glu.textureFromElement(this.gl_, elem, this.texture_);
+  this.changed_ |= View.Changed.IMAGE;
 };
 
 
