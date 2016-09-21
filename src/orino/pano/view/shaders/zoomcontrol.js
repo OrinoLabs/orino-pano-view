@@ -54,7 +54,7 @@ ZoomControl.prototype.handleMouseWheel_ = function(e) {
   var cam = this.view.camera();
   cam.hFov *= factor;
   cam.hFov = goog.math.clamp(
-      cam.hFov, goog.math.toRadians(10), goog.math.toRadians(170));
+      cam.hFov, goog.math.toRadians(20), goog.math.toRadians(160));
   this.view.cameraChanged();
   this.view.draw();
 };
