@@ -63,6 +63,15 @@ var View = orino.pano.view.View = function(canvasElem, opt_panoOpts, opt_camera)
    */
   this.conductor_ = new orino.anim.Conductor;
 
+  // Add a passive (won't start animation loop) animation to call draw_ after
+  // any animations got a chance to change things.
+  var drawer = new orino.anim.Animation({
+        passive: true,
+        priority: 0,
+        tick: this.draw_.bind(this),
+      });
+  this.conductor_.add(drawer);
+
 
   View.loadShaders_()
   .then(goog.bind(this.initGraphics_, this));
@@ -139,6 +148,23 @@ View.prototype.canvasSize_ = new goog.math.Size(0, 0);
 
 
 /**
+ * @enum {number}
+ */
+View.Changed = {
+  PRISTINE: 0,
+  CAMERA: 1 << 0,
+  IMAGE: 1 << 1,
+};
+
+
+/**
+ * @type {number}
+ * @private
+ */
+View.prototype.changed_ = View.Changed.PRISTINE;
+
+
+/**
  * @return {HTMLCanvasElement}
  */
 View.prototype.canvasElement = function() {
@@ -192,7 +218,7 @@ View.prototype.adjustSize = function() {
  */
 View.prototype.updateSize_ = function() {
   this.updateWebGLViewportSize_();
-  this.updateView_();
+  this.updateCamera_();
   this.draw_();
 };
 
@@ -279,7 +305,7 @@ View.prototype.initGraphics_ = function() {
 
   this.updateProjection_();
   this.updateWebGLViewportSize_();
-  this.updateView_();
+  this.updateCamera_();
 
   this.dispatchEvent(View.Event.READY);
 
@@ -347,8 +373,7 @@ View.prototype.planeV_;
 /**
  * Updates the camera view.
  */
-View.prototype.updateView_ = function() {
-  console.log('updateView_')
+View.prototype.updateCamera_ = function() {
   var camera = this.camera_;
 
   if (this.projection_ == orino.pano.Projection.PLANAR) {
@@ -381,7 +406,9 @@ View.prototype.updateView_ = function() {
  * Notifies this view about a camera change, prompting it to update the view.
  * Does NOT trigger a redraw.
  */
-View.prototype.cameraChanged = View.prototype.updateView_;
+View.prototype.cameraChanged = function() {
+  this.changed_ |= View.Changed.CAMERA;
+};
 
 
 /**
@@ -389,6 +416,10 @@ View.prototype.cameraChanged = View.prototype.updateView_;
  */
 View.prototype.draw_ = function() {
   if (!this.gl_) return;
+
+  if (this.changed_ & View.Changed.CAMERA) {
+    this.updateCamera_();
+  }
 
   // TODO: Probably unnecessary.
   this.gl_.activeTexture(this.gl_.TEXTURE0);
@@ -398,13 +429,32 @@ View.prototype.draw_ = function() {
   this.gl_.uniform1i(this.uniforms_.sampler, 0);
 
   this.gl_.drawArrays(this.gl_.TRIANGLE_STRIP, 0, this.screenQuadBuffer_.numItems);
+
+
+  this.changed_ = View.Changed.PRISTINE;
 };
 
 
 /**
  * Redraws the pano.
  */
-View.prototype.draw = View.prototype.draw_;
+View.prototype.draw = function() {
+  if (this.conductor_.isRunning()) return;
+
+  if (!this.drawInNextFrame_) {
+    var reqId = 0;
+    var boundDraw = this.draw_.bind(this);
+    this.drawInNextFrame_ = function() {
+      if (reqId) return;
+      reqId = window.requestAnimationFrame(
+        function() {
+          reqId = 0;
+          boundDraw();
+        });
+    };
+  }
+  this.drawInNextFrame_();
+};
 
 
 /**

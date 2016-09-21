@@ -10,5 +10,6 @@ goog.addDependency('../../../../src/orino/pano/view/view.js', ['orino.pano.view.
 goog.addDependency('../../../orino-anim/src/orino/anim/anim.js', ['orino.anim'], ['orino.anim.Conductor'], false);
 goog.addDependency('../../../orino-anim/src/orino/anim/animation.js', ['orino.anim.Animation'], ['orino.anim.AnimationState'], false);
 goog.addDependency('../../../orino-anim/src/orino/anim/animationstate.js', ['orino.anim.AnimationState'], [], false);
-goog.addDependency('../../../orino-anim/src/orino/anim/conductor.js', ['orino.anim.Conductor'], ['orino.anim.Animation'], false);
+goog.addDependency('../../../orino-anim/src/orino/anim/conductor.js', ['orino.anim.Conductor'], ['orino.anim.Animation', 'orino.anim.Loop'], false);
 goog.addDependency('../../../orino-anim/src/orino/anim/fps.js', ['orino.anim.fps', 'orino.anim.fps.Monitor', 'orino.anim.fps.View'], ['orino.anim.Animation'], false);
+goog.addDependency('../../../orino-anim/src/orino/anim/loop.js', ['orino.anim.Loop'], [], false);

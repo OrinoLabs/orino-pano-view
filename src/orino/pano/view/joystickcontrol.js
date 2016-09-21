@@ -57,7 +57,8 @@ JoystickControl.prototype.handleMouseDown_ = function(e) {
     speed: new orino.pano.Coordinates(),
   };
 
-  var lookAt = this.view.camera().lookAt;
+  var camera = this.view.camera();
+  var lookAt = camera.lookAt;
   var speed = this.state_.speed;
 
   this.anim_ = new orino.anim.Animation({
@@ -67,9 +68,7 @@ JoystickControl.prototype.handleMouseDown_ = function(e) {
         lookAt.pitch += animState.elapsed / 1000 * speed.pitch;
         // Don't go over poles.
         lookAt.pitch = goog.math.clamp(lookAt.pitch, -Math.PI / 2, Math.PI / 2);
-        // TODO: Don't call draw from here.
         this.view.cameraChanged();
-        this.view.draw();
       }.bind(this),
     });
 
